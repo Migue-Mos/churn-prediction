@@ -100,4 +100,8 @@ model.predict_proba(new_customers)[:, 1]   # churn probability
 
 - Choose the decision threshold from cross-validated predictions and a cost assumption.
 - Hyperparameter tuning with `RandomizedSearchCV` on the training set.
+<<<<<<< HEAD
 - Model explainability (coefficients of the logistic regression, SHAP for tree models).
+=======
+- Model explainability (coefficients of the logistic regression, SHAP for tree models).
+>>>>>>> 7c7fee7 (XGBoost model added, new pipeline of modeling, improving notebooks, now we use cross validation to evaluate models. Modified README)

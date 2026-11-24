@@ -1,57 +1,67 @@
+"""
+Model definitions and persistence.
 
-from src.data_loader import load_data, basic_info
-from src.preprocessing import clean_data, split_features, scale_numeric
-from src.modeling import train_logistic, train_svm, train_random_forest
-from src.evaluation import evaluate_model, plot_roc
+Each build_* function returns an UNFITTED Pipeline (preprocessor + classifier),
+so it can be used both for cross-validation and for the final fit.
+"""
+
+from pathlib import Path
+
 from sklearn.model_selection import train_test_split
 
-# Load data
-df = load_data("data/Telco-Customer-Churn.csv")
-print("\n--- Dataset Info ---")
-basic_info(df)
+from src.data_loader import load_data, basic_info
+from src.preprocessing import clean_data, split_features, build_preprocessor
+from src.modeling import get_candidates, save_model
+from src.evaluation import evaluate_model, plot_roc
 
-# Clean
-df = clean_data(df)
+ROOT = Path(__file__).resolve().parent
+DATA_PATH = ROOT / "data" / "Telco-Customer-Churn.csv"
+MODEL_PATH = ROOT / "models" / "best_churn_model.pkl"
 
-# Define target
-target = "Churn"
+TARGET = "Churn"
+RANDOM_STATE = 42
+FINAL_MODEL = "Logistic Regression"
 
-# Split X, y
-X, y = split_features(df, target)
+def main():
+    # Load data
+    df = load_data(DATA_PATH)
+    print("\n--- Dataset Info ---")
+    basic_info(df)
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+    # Clean (row-wise cleaning, no learning)
+    df = clean_data(df)
 
-# Numeric columns to scale
-numeric_cols = ["tenure", "MonthlyCharges", "TotalCharges"]
+    # Split X, y
+    X, y = split_features(df, TARGET)
 
-# Scale
-X_train, X_test, scaler = scale_numeric(X_train, X_test, numeric_cols)
+    # Train-test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=RANDOM_STATE,
+        stratify=y  # maintain class distribution
+    )
 
-# --- Train models ---
-print("\nTraining Logistic Regression...")
-log_model = train_logistic(X_train, y_train)
+    # Models are Pipelines: scaling and encoding are fitted on train only
+    preprocessor = build_preprocessor(X)
 
-print("\nTraining Random Forest...")
-rf_model = train_random_forest(X_train, y_train)
+    # Get candidate models
+    candidates = get_candidates(preprocessor, y_train)
+    
+    # Train and evaluate each model
+    for name, model in candidates.items():
+        print(f"\nTraining {name}...")
+        model.fit(X_train, y_train)
 
-print("\nTraining SVM...")
-svm_model = train_svm(X_train, y_train)
+        print(f"\n\n--- {name} Evaluation ---")
+        evaluate_model(model, X_test, y_test)
+        plot_roc(model, X_test, y_test, name)
 
-# --- Evaluate ---
-print("\n\n--- Logistic Regression Evaluation ---")
-evaluate_model(log_model, X_test, y_test)
-plot_roc(log_model, X_test, y_test, "Logistic Regression")
+    # Save the final model
+    final_model = candidates[FINAL_MODEL]
+    save_model(final_model, MODEL_PATH)
+    print(f"\nFinal model ({FINAL_MODEL}) saved to {MODEL_PATH}")
 
-print("\n\n--- Random Forest Evaluation ---")
-evaluate_model(rf_model, X_test, y_test)
-plot_roc(rf_model, X_test, y_test, "Random Forest")
+    print("\nDone.")
 
-print("\n\n--- SVM Evaluation ---")
-evaluate_model(svm_model, X_test, y_test)
-plot_roc(svm_model, X_test, y_test, "SVM")
-
-print("\nDone.")
+if __name__ == "__main__":
+    main()
 
