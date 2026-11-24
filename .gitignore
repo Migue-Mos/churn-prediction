@@ -13,12 +13,14 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data and models (keep the folders, not the files)
+# Data files are not tracked (download the dataset from Kaggle)
 data/*
 !data/.gitkeep
+
+# Models: only the final pipeline is tracked
 models/*
 !models/.gitkeep
-.csv/
+!models/best_churn_model.pkl
 
 # Secrets and local config
 .env
