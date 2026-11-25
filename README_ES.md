@@ -100,8 +100,5 @@ model.predict_proba(new_customers)[:, 1]   # probabilidad de churn
 
 - Elegir el umbral de decisión a partir de predicciones de validación cruzada y una hipótesis de costes.
 - Ajuste de hiperparámetros con `RandomizedSearchCV` sobre el conjunto de entrenamiento.
-<<<<<<< HEAD
-- Explicabilidad del modelo (coeficientes de la regresión logística, SHAP para modelos de árboles).
-=======
-- Explicabilidad del modelo (coeficientes de la regresión logística, SHAP para modelos de árboles).
->>>>>>> 7c7fee7 (XGBoost model added, new pipeline of modeling, improving notebooks, now we use cross validation to evaluate models. Modified README)
+< Explicabilidad del modelo (coeficientes de la regresión logística, SHAP para modelos de árboles).
+
